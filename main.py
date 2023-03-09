@@ -5,6 +5,63 @@ import math
 import statistics as stats
 
 # FUNCTIONS
+def mean(data):
+    total = sum(data)
+    m = total / len(data)
+    return m
+def median(data):
+    data.sort()
+    if len(data) % 2 == 0:
+        m = (data[len(data) // 2] + data[len(data) // 2 - 1]) / 2
+    else:
+        m = data[len(data) // 2]
+    return m
+def variance(data):
+    new_list = [(val - mean(data)) ** 2 for val in data]
+    v = mean(new_list)
+    return v
+def stand_dev(data):
+    v = variance(data)
+    s = math.sqrt(v)
+    return s
+
+def calc_stats(dict):
+    x_stats = {}
+    y_stats = {}
+    for key, item in dict.items():
+        x_stats_list = []
+        y_stats_list = []
+        x_list = [val[0] for val in item]
+        y_list = [val[1] for val in item]
+        x_stats_list.append(mean(x_list)), x_stats_list.append(median(x_list)), x_stats_list.append(stand_dev(x_list)), x_stats_list.append(max(x_list)), x_stats_list.append(min(x_list))
+        y_stats_list.append(mean(y_list)), y_stats_list.append(median(y_list)), y_stats_list.append(stand_dev(y_list)), y_stats_list.append(max(y_list)), y_stats_list.append(min(y_list))
+        x_stats[key] = x_stats_list
+        y_stats[key] = y_stats_list
+    return(x_stats, y_stats)
+
+def cal_corr(list1, list2, option=0):
+    if len(list1) == len(list2):
+        i = -1
+        prod_list = []
+        min_sqr1 = []
+        min_sqr2 = []
+        for val in list1:
+            i += 1
+            prod_list.append(list1[i] * list2[i])
+            min_sqr1.append(list1[i] ** 2)
+            min_sqr2.append(list2[i] ** 2)
+        numerator = ((len(list1) * sum(prod_list)) - (sum(list1) * sum(list2)))
+        denominator = (math.sqrt(len(list1) * sum(min_sqr1) - sum(list1) ** 2) * math.sqrt(len(list2) * sum(min_sqr2) - sum(list2) ** 2))
+        denominator = denominator.real
+        correlation = numerator / denominator
+        if option == 0:
+            return (correlation)
+        elif option == 1:
+            return (sum(list1), sum(list2), sum(prod_list), sum(min_sqr1), len(list1))
+    else:
+        print('ERROR LISTS ARE NOT THE SAME LENGTH CANT COMPUTE')
+        return False
+
 def guess_centroid(list1, list2):
     plt.scatter(list1, list2)
     plt.show()
@@ -50,6 +107,7 @@ def plot_centroids(dict, title, centroids = None):
             plt.plot([point[0]], [point[1]], 'k', marker='D')
     plt.title(title)
     plt.show()
+    return dict, centroids
 
 
 def calc_centroid(dict):
@@ -62,7 +120,6 @@ def calc_centroid(dict):
             y_list.append(val[1])
         centroid_coord.append([stats.mean(x_list), stats.mean(y_list)])
     return(centroid_coord)
-
 
 
 #############################################################################
@@ -96,28 +153,29 @@ income_dict['Male'], income_dict['Female'] = male_income, female_income
 score_dict['Male'], score_dict['Female'] = male_score, female_score
 
 
+print(cal_corr(male_income, male_age))
+print(cal_corr(female_income, female_age))
+
+print(cal_corr(male_age, male_score))
+print(cal_corr(female_age, female_score))
 
 # Male and Female Choices Respectively
-#(25, 20), (25, 70), (55, 50), (85, 15), (85, 80)
-#(25, 20), (25, 80), (55, 50), (90, 20), (90, 80)
+# (25, 20), (25, 70), (55, 50), (85, 15), (85, 80)
+# (25, 20), (25, 80), (55, 50), (90, 20), (90, 80)
 def main(rep, gender):
+    dictionary, centroid_list = [], []
     cluster_dict = assign_cluster(income_dict[gender], score_dict[gender], guess_centroid(income_dict[gender], score_dict[gender]))
     cent_coord = calc_centroid(cluster_dict)
     plot_centroids(cluster_dict, f'{gender} INCOME VS SCORE', cent_coord)
     for i in range(rep):
         cluster_dict = assign_cluster(income_dict[gender], score_dict[gender], cent_coord)
         cent_coord = calc_centroid(cluster_dict)
-        plot_centroids(cluster_dict, f'{gender} INCOME VS SCORE', cent_coord)
+        dictionary, centroid_list = plot_centroids(cluster_dict, f'{gender} INCOME VS SCORE', cent_coord)
+    x_stats, y_stats = calc_stats(dictionary)
+    print(cal_corr(male_income, male_age))
 
-main(4, 'Male')
-main(4, 'Female')
-
-
-
-
-
-
-
+# main(4, 'Male')
+# main(4, 'Female')
 
 
 
